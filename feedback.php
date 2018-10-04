@@ -2,12 +2,12 @@
 // This script performs an INSERT query to add a record to the users table.
 
 $page_title = 'Feedback';
-include('../includes/header.html');
+include('includes/header.html');
 
 // Check for form submission:
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
-	require('../mysqli_connect.php'); // Connect to the db.
+	require('mysqli_connect.php'); // Connect to the db.
 
 	$errors = []; // Initialize an error array.
 
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		// Register the user in the database...
 
 		// Make the query:
-		$q = "INSERT INTO users (first_name, last_name, feedback) VALUES ('$fn', '$ln', '$fb')";
+		$q = "INSERT INTO customers (first_name, last_name, feedback) VALUES ('$fn', '$ln', '$fb')";
 		$r = @mysqli_query($dbc, $q); // Run the query.
 		if ($r) { // If it ran OK.
 
@@ -93,4 +93,4 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	<p>Feedback: <input type="textarea" name="feedb" value="<?php if (isset($_POST['feedb'])) echo $_POST['feedb']; ?>" ></p>
 	<p><input type="submit" name="submit" value="Feedback"></p>
 </form>
-<?php include('../includes/footer.html'); ?>
+<?php include('includes/footer.html'); ?>

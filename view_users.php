@@ -1,125 +1,56 @@
-<?php # Script 10.5 - #5
+<?php # Script 9.6 - view_users.php #2
 // This script retrieves all the records from the users table.
-// This new version allows the results to be sorted in different ways.
 
-$page_title = 'View the Current Users';
+$page_title = 'Registered Users';
 include('includes/header.html');
+
+// Page header:
 echo '<h1>Registered Users</h1>';
 
-require('mysqli_connect.php');
+require('mysqli_connect.php'); // Connect to the db.
 
-// Number of records to show per page:
-$display = 10;
-
-// Determine how many pages there are...
-if (isset($_GET['p']) && is_numeric($_GET['p'])) { // Already been determined.
-	$pages = $_GET['p'];
-} else { // Need to determine.
- 	// Count the number of records:
-	$q = "SELECT COUNT(user_id) FROM users";
-	$r = @mysqli_query($dbc, $q);
-	$row = @mysqli_fetch_array($r, MYSQLI_NUM);
-	$records = $row[0];
-	// Calculate the number of pages...
-	if ($records > $display) { // More than 1 page.
-		$pages = ceil ($records/$display);
-	} else {
-		$pages = 1;
-	}
-} // End of p IF.
-
-// Determine where in the database to start returning results...
-if (isset($_GET['s']) && is_numeric($_GET['s'])) {
-	$start = $_GET['s'];
-} else {
-	$start = 0;
-}
-
-// Determine the sort...
-// Default is by registration date.
-$sort = (isset($_GET['sort'])) ? $_GET['sort'] : 'rd';
-
-// Determine the sorting order:
-switch ($sort) {
-	case 'ln':
-		$order_by = 'last_name ASC';
-		break;
-	case 'fn':
-		$order_by = 'first_name ASC';
-		break;
-	case 'rd':
-		$order_by = 'registration_date ASC';
-		break;
-	default:
-		$order_by = 'registration_date ASC';
-		$sort = 'rd';
-		break;
-}
-
-// Define the query:
-$q = "SELECT last_name, first_name, DATE_FORMAT(registration_date, '%M %d, %Y') AS dr, user_id FROM users ORDER BY $order_by LIMIT $start, $display";
+$messages = 'dang';
+// Make the query:
+$q = "SELECT first_name AS fname, last_name AS lname , customer_id as cid from customers ORDER BY customer_id ASC";
+//$q = "SELECT CONCAT(users.last_name, ', ', users.first_name) AS name, messages.body as message FROM users INNER JOIN messages ON messages.user_id = users.user_id WHERE messages.user_id = 1";
 $r = @mysqli_query($dbc, $q); // Run the query.
 
-// Table header:
-echo '<table width="60%">
-<thead>
-<tr>
-	<th align="left"><strong>Edit</strong></th>
-	<th align="left"><strong>Delete</strong></th>
-	<th align="left"><strong><a href="view_users.php?sort=ln">Last Name</a></strong></th>
-	<th align="left"><strong><a href="view_users.php?sort=fn">First Name</a></strong></th>
-	<th align="left"><strong><a href="view_users.php?sort=rd">Date Registered</a></strong></th>
-</tr>
-</thead>
-<tbody>
+// Count the number of returned rows:
+$num = mysqli_num_rows($r);
+
+if ($num > 0) { // If it ran OK, display the records.
+
+	// Print how many users there are:
+	echo "<p>There are currently $num users.</p>\n";
+
+	// Table header.
+	echo '<table width="60%">
+	<thead>
+	<tr>
+		<th align="left">First Name</th>
+		<th align="left">Last Name</th>
+	</tr>
+	</thead>
+	<tbody>
 ';
 
-// Fetch and print all the records....
-$bg = '#eeeeee';
-while ($row = mysqli_fetch_array($r, MYSQLI_ASSOC)) {
-	$bg = ($bg=='#eeeeee' ? '#ffffff' : '#eeeeee');
-		echo '<tr bgcolor="' . $bg . '">
-		<td align="left"><a href="edit_user.php?id=' . $row['user_id'] . '">Edit</a></td>
-		<td align="left"><a href="delete_user.php?id=' . $row['user_id'] . '">Delete</a></td>
-		<td align="left">' . $row['last_name'] . '</td>
-		<td align="left">' . $row['first_name'] . '</td>
-		<td align="left">' . $row['dr'] . '</td>
-	</tr>
-	';
-} // End of WHILE loop.
-
-echo '</tbody></table>';
-mysqli_free_result($r);
-mysqli_close($dbc);
-
-// Make the links to other pages, if necessary.
-if ($pages > 1) {
-
-	echo '<br><p>';
-	$current_page = ($start/$display) + 1;
-
-	// If it's not the first page, make a Previous button:
-	if ($current_page != 1) {
-		echo '<a href="view_users.php?s=' . ($start - $display) . '&p=' . $pages . '&sort=' . $sort . '">Previous</a> ';
+	// Fetch and print all the records:
+	while ($row = mysqli_fetch_array($r, MYSQLI_ASSOC)) {
+		echo '<tr><td align="left">' . $row['fname'] . '</td><td align="left">' .  $row['lname']  .'</td></tr>
+		';
 	}
 
-	// Make all the numbered pages:
-	for ($i = 1; $i <= $pages; $i++) {
-		if ($i != $current_page) {
-			echo '<a href="view_users.php?s=' . (($display * ($i - 1))) . '&p=' . $pages . '&sort=' . $sort . '">' . $i . '</a> ';
-		} else {
-			echo $i . ' ';
-		}
-	} // End of FOR loop.
+	echo '</tbody></table>'; // Close the table.
 
-	// If it's not the last page, make a Next button:
-	if ($current_page != $pages) {
-		echo '<a href="view_users.php?s=' . ($start + $display) . '&p=' . $pages . '&sort=' . $sort . '">Next</a>';
-	}
+	mysqli_free_result ($r); // Free up the resources.
 
-	echo '</p>'; // Close the paragraph.
+} else { // If no records were returned.
 
-} // End of links section.
+	echo '<p class="error">This user has no posts.</p>';
+
+}
+
+mysqli_close($dbc); // Close the database connection.
 
 include('includes/footer.html');
 ?>
